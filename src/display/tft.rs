@@ -19,7 +19,8 @@ use crate::time::*;
 
 pub struct TFTScreen<SPI: embedded_hal::spi::SpiDevice, 
     DC: embedded_hal::digital::OutputPin, 
-    RST: embedded_hal::digital::OutputPin> {
+    RST: embedded_hal::digital::OutputPin> 
+{
     pub display: st7735_lcd::ST7735<SPI, DC, RST>,
 }
 
@@ -52,16 +53,12 @@ where SPI: embedded_hal::spi::SpiDevice,
         Ok(())
     }
 
-    pub fn draw_time(&mut self, t: Time) -> Result<(), ()>  {
+    pub fn draw_time(&mut self, t: &Time) -> Result<(), ()>  {
         let style = MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE); 
 
-        let meridiem = match t.get_meridiem() {
-            Meridiem::AM => "AM",
-            Meridiem::PM => "PM",
-        }; 
-
         let mut buf = heapless::String::<16>::new();
-        write!(&mut buf, "{}:{} {}", t.hours, t.minutes, meridiem).ok();
+        write!(&mut buf, "{}", t).ok(); 
+
         let s = buf.as_str();
 
         Text::new(s, Point::new(20, 30), style).draw(&mut self.display)?; 
