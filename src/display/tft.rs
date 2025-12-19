@@ -1,8 +1,6 @@
-use embedded_hal::digital;
-use heapless::format;
 use st7735_lcd::Orientation;
 use embedded_graphics::{
-    mono_font::{ascii::FONT_10X20, MonoTextStyle}, 
+    mono_font::{ascii::FONT_6X10, MonoTextStyle}, 
     pixelcolor::{Rgb565}, prelude::*, 
     text::Text
 };
@@ -17,18 +15,23 @@ use core::write;
 use crate::time::*;
 
 
-pub struct TFTScreen<SPI: embedded_hal::spi::SpiDevice, 
-    DC: embedded_hal::digital::OutputPin, 
-    RST: embedded_hal::digital::OutputPin> 
+pub struct TFTScreen<SPI, DC, RST> 
+where
+    SPI: embedded_hal::blocking::spi::Transfer<u8> 
+        + embedded_hal::blocking::spi::Write<u8>,
+    DC: embedded_hal::digital::v2::OutputPin,
+    RST: embedded_hal::digital::v2::OutputPin,
 {
     pub display: st7735_lcd::ST7735<SPI, DC, RST>,
 }
 
 
-impl <SPI, DC, RST> TFTScreen<SPI, DC, RST>
-where SPI: embedded_hal::spi::SpiDevice, 
-    DC: embedded_hal::digital::OutputPin, 
-    RST: embedded_hal::digital::OutputPin
+impl<SPI, DC, RST> TFTScreen<SPI, DC, RST>
+where 
+    SPI: embedded_hal::blocking::spi::Transfer<u8> 
+        + embedded_hal::blocking::spi::Write<u8>,
+    DC: embedded_hal::digital::v2::OutputPin,
+    RST: embedded_hal::digital::v2::OutputPin,
 {
     pub fn new(spi: SPI, dc: DC, rst: RST, delay: &mut arduino_hal::Delay) -> Option<Self> {
 
@@ -54,7 +57,7 @@ where SPI: embedded_hal::spi::SpiDevice,
     }
 
     pub fn draw_time(&mut self, t: &Time) -> Result<(), ()>  {
-        let style = MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE); 
+        let style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE); 
 
         let mut buf = heapless::String::<16>::new();
         write!(&mut buf, "{}", t).ok(); 
